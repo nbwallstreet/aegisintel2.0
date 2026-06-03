@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eagle Eye Systems — AEGIS Risk Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bronze: #B4975A;
+            --bronze-dim: #8a7244;
+            --dark: #0A0C10;
+            --dark-2: #111318;
+            --dark-3: #161922;
+            --dark-4: #1C2028;
+            --border: #1E2330;
+            --text-muted: #6B7280;
+            --text-mid: #94A3B8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Barlow', sans-serif;
+            background-color: var(--dark);
+            color: #E2E8F0;
+            min-height: 100vh;
+        }
+        h1, h2, h3, h4, .display { font-family: 'Barlow Condensed', sans-serif; }
+
+        /* PAGE SYSTEM */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* NAV */
+        nav { background: rgba(10,12,16,0.97); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px); }
+        .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .logo-mark { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--bronze); display: flex; align-items: center; justify-content: center; background: var(--dark-3); }
+        .nav-links { display: flex; align-items: center; gap: 4px; }
+        .nav-link { padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-mid); cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em; text-transform: uppercase; font-family: 'Barlow Condensed', sans-serif; }
+        .nav-link:hover { color: white; background: var(--dark-3); }
+        .nav-link.active { color: var(--bronze); }
+        .nav-cta { padding: 8px 18px; border-radius: 6px; font-size: 12px; font-weight: 700; color: #000; background: var(--bronze); cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em; text-transform: uppercase; font-family: 'Barlow Condensed', sans-serif; }
+        .nav-cta:hover { background: #c9a96a; }
+
+        /* CARDS */
+        .card { background: var(--dark-3); border: 1px solid var(--border); border-radius: 10px; transition: border-color 0.2s; }
+        .card:hover { border-color: rgba(180,151,90,0.35); }
+
+        /* BRONZE ELEMENTS */
+        .bronze { color: var(--bronze); }
+        .badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(180,151,90,0.1); color: var(--bronze); border: 1px solid rgba(180,151,90,0.2); font-family: 'Barlow Condensed', sans-serif; }
+        .btn-primary { display: inline-flex; align-items: center; justify-content: center; padding: 12px 28px; border-radius: 6px; font-size: 13px; font-weight: 700; color: #000; background: var(--bronze); cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em; text-transform: uppercase; font-family: 'Barlow Condensed', sans-serif; border: none; }
+        .btn-primary:hover { background: #c9a96a; transform: translateY(-1px); }
+        .btn-secondary { display: inline-flex; align-items: center; justify-content: center; padding: 12px 28px; border-radius: 6px; font-size: 13px; font-weight: 700; color: white; background: transparent; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em; text-transform: uppercase; font-family: 'Barlow Condensed', sans-serif; }
+        .btn-secondary:hover { border-color: var(--bronze); color: var(--bronze); }
+
+        /* DIVIDER */
+        .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+        /* FORM INPUTS */
+        .form-input { width: 100%; background: var(--dark); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 14px; color: white; font-family: 'Barlow', sans-serif; transition: border-color 0.2s; outline: none; }
+        .form-input:focus { border-color: var(--bronze); }
+        .form-input::placeholder { color: var(--text-muted); }
+        .form-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: white; margin-bottom: 8px; font-family: 'Barlow Condensed', sans-serif; }
+
+        /* STAT STRIP */
+        .stat-strip { background: var(--dark-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+        /* FRAMEWORK DETAIL */
+        #framework-detail { display: none; }
+        #framework-detail.visible { display: block; }
+
+        /* NOISE TEXTURE OVERLAY */
+        .noise::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.5s ease forwards; }
+        .fade-up-2 { animation: fadeUp 0.5s 0.1s ease both; }
+        .fade-up-3 { animation: fadeUp 0.5s 0.2s ease both; }
+
+        /* MOBILE NAV */
+        @media (max-width: 640px) {
+            .nav-links { display: none; }
+            .mobile-nav { display: flex; }
+        }
+        .mobile-nav { display: none; gap: 8px; }
+
+        /* SUCCESS STATE */
+        #form-success { display: none; }
+        #form-success.visible { display: block; }
+        #form-fields.hidden { display: none; }
+
+        select option { background: var(--dark-3); }
+    </style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav>
+    <div class="nav-inner">
+        <div class="nav-logo" onclick="showPage('home')">
+            <div class="logo-mark">
+                <i data-lucide="eye" style="width:18px;height:18px;color:var(--bronze)"></i>
+            </div>
+            <div>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;letter-spacing:0.1em;color:white">EAGLE EYE SYSTEMS</div>
+                <div style="font-size:9px;color:var(--bronze);letter-spacing:0.15em;font-weight:600;font-family:'Barlow Condensed',sans-serif">CERTAINTY. COMPLIANCE. DEFENSE.</div>
+            </div>
+        </div>
+        <div class="nav-links">
+            <div class="nav-link active" id="nav-home" onclick="showPage('home')">Home</div>
+            <div class="nav-link" id="nav-frameworks" onclick="showPage('frameworks')">Frameworks</div>
+            <div class="nav-link" id="nav-solutions" onclick="showPage('solutions')">Solutions</div>
+            <div class="nav-link" id="nav-intake" onclick="showPage('intake')">Intake</div>
+        </div>
+        <div class="mobile-nav">
+            <div class="nav-link" onclick="showPage('frameworks')">Frameworks</div>
+            <div class="nav-cta" onclick="showPage('intake')">Intake</div>
+        </div>
+        <div class="nav-cta" style="display:none" id="desktop-cta" onclick="showPage('intake')">Request Assessment</div>
+        <div id="desktop-cta-show" class="nav-cta" onclick="showPage('intake')" style="display:flex">Request Assessment</div>
+    </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- PAGE: HOME -->
+<!-- ============================================================ -->
+<div class="page active" id="page-home">
+
+    <!-- HERO -->
+    <section style="padding:80px 24px 100px;background:linear-gradient(180deg,#0A0C10 0%,#111318 100%);border-bottom:1px solid var(--border);position:relative;overflow:hidden;">
+        <!-- Grid background -->
+        <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(180,151,90,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(180,151,90,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none"></div>
+        <div style="max-width:860px;margin:0 auto;text-align:center;position:relative">
+            <div class="badge fade-up">Ontario's Premier Risk Advisory</div>
+            <h1 class="fade-up-2" style="font-size:clamp(36px,6vw,72px);font-weight:800;color:white;margin:20px 0 0;line-height:1;letter-spacing:-0.01em">
+                DEFENSIBLE RISK<br><span style="color:var(--bronze)">INTELLIGENCE</span><br>FOR HIGH-VALUE ASSETS
+            </h1>
+            <p class="fade-up-3" style="font-size:15px;color:var(--text-mid);margin:24px auto 0;max-width:580px;line-height:1.7">
+                Eagle Eye Systems provides commercial operators and boards with structured, trace-verified physical and environmental liability mapping. We convert operational uncertainty into clear, documented compliance.
+            </p>
+            <div class="fade-up-3" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:36px">
+                <button class="btn-primary" onclick="showPage('intake')">Initiate Intake Briefing</button>
+                <button class="btn-secondary" onclick="showPage('frameworks')">Explore Frameworks</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- STAT STRIP -->
+    <div class="stat-strip">
+        <div style="max-width:1100px;margin:0 auto;padding:28px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:24px;text-align:center">
+            <div>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--bronze)">9</div>
+                <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px">Proprietary Frameworks</div>
+            </div>
+            <div>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--bronze)">100%</div>
+                <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px">Trace-Verified Findings</div>
+            </div>
+            <div>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--bronze)">48H</div>
+                <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px">Report Turnaround</div>
+            </div>
+            <div>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--bronze)">ON</div>
+                <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px">Ontario Focused</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WHAT WE DO -->
+    <section style="max-width:1100px;margin:0 auto;padding:80px 24px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center">
+            <div>
+                <div class="badge" style="margin-bottom:16px">The AEGIS System</div>
+                <h2 style="font-size:clamp(28px,4vw,44px);font-weight:800;color:white;line-height:1.05;margin:0 0 20px">We Map Liability Before It Maps You</h2>
+                <p style="font-size:14px;color:var(--text-mid);line-height:1.8;margin:0 0 16px">Every unaddressed physical hazard on your property is a live liability event waiting to be triggered. Eagle Eye Systems arrives before the incident — not after.</p>
+                <p style="font-size:14px;color:var(--text-mid);line-height:1.8;margin:0 0 28px">Our AEGIS platform deploys nine interlocking analytical frameworks to produce board-ready risk intelligence that is legally defensible, operationally actionable, and financially quantified.</p>
+                <button class="btn-primary" onclick="showPage('solutions')">View Strategic Solutions</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div class="card" style="padding:24px">
+                    <i data-lucide="shield-check" style="width:22px;height:22px;color:var(--bronze);margin-bottom:12px"></i>
+                    <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:white;margin-bottom:6px">Legal Defensibility</div>
+                    <div style="font-size:12px;color:var(--text-muted);line-height:1.6">Every finding anchored to Ontario statute and common law precedent.</div>
+                </div>
+                <div class="card" style="padding:24px">
+                    <i data-lucide="map-pin" style="width:22px;height:22px;color:var(--bronze);margin-bottom:12px"></i>
+                    <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:white;margin-bottom:6px">Geo-Tagged Evidence</div>
+                    <div style="font-size:12px;color:var(--text-muted);line-height:1.6">Precise coordinates and photographic documentation on every risk item.</div>
+                </div>
+                <div class="card" style="padding:24px">
+                    <i data-lucide="trending-down" style="width:22px;height:22px;color:var(--bronze);margin-bottom:12px"></i>
+                    <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:white;margin-bottom:6px">Cost-of-Inaction Modeling</div>
+                    <div style="font-size:12px;color:var(--text-muted);line-height:1.6">1, 3, and 5-year financial projections on deferred maintenance risk.</div>
+                </div>
+                <div class="card" style="padding:24px">
+                    <i data-lucide="file-text" style="width:22px;height:22px;color:var(--bronze);margin-bottom:12px"></i>
+                    <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:white;margin-bottom:6px">Board-Ready Reports</div>
+                    <div style="font-size:12px;color:var(--text-muted);line-height:1.6">Standardized intelligence packages delivered in 48 hours.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- WHO WE SERVE -->
+    <section style="max-width:1100px;margin:0 auto;padding:80px 24px">
+        <div style="text-align:center;margin-bottom:48px">
+            <h2 style="font-size:clamp(24px,4vw,40px);font-weight:800;color:white;margin:0 0 12px">Who We Serve</h2>
+            <p style="font-size:13px;color:var(--text-muted);max-width:500px;margin:0 auto">High-value Ontario properties with complex liability exposure.</p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+            <div class="card" style="padding:24px 20px;text-align:center">
+                <i data-lucide="building-2" style="width:24px;height:24px;color:var(--bronze);margin:0 auto 12px"></i>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:white">Golf & Country Clubs</div>
+            </div>
+            <div class="card" style="padding:24px 20px;text-align:center">
+                <i data-lucide="anchor" style="width:24px;height:24px;color:var(--bronze);margin:0 auto 12px"></i>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:white">Marina & Waterfront</div>
+            </div>
+            <div class="card" style="padding:24px 20px;text-align:center">
+                <i data-lucide="trees" style="width:24px;height:24px;color:var(--bronze);margin:0 auto 12px"></i>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:white">Cottage Resorts</div>
+            </div>
+            <div class="card" style="padding:24px 20px;text-align:center">
+                <i data-lucide="hotel" style="width:24px;height:24px;color:var(--bronze);margin:0 auto 12px"></i>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:white">Commercial Hotels</div>
+            </div>
+            <div class="card" style="padding:24px 20px;text-align:center">
+                <i data-lucide="landmark" style="width:24px;height:24px;color:var(--bronze);margin:0 auto 12px"></i>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:white">Condo Corporations</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA STRIP -->
+    <section style="background:var(--dark-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:60px 24px;text-align:center">
+        <h2 style="font-size:clamp(24px,4vw,42px);font-weight:800;color:white;margin:0 0 12px">Ready to Map Your Exposure?</h2>
+        <p style="font-size:14px;color:var(--text-muted);margin:0 0 28px">Submit your intake briefing and we'll respond within 24 hours.</p>
+        <button class="btn-primary" onclick="showPage('intake')">Initiate Intake Briefing →</button>
+    </section>
+
+    <!-- FOOTER -->
+    <footer style="background:var(--dark);border-top:1px solid var(--border);padding:40px 24px;text-align:center">
+        <div style="max-width:1100px;margin:0 auto">
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px">
+                <div class="logo-mark" style="width:32px;height:32px"><i data-lucide="eye" style="width:14px;height:14px;color:var(--bronze)"></i></div>
+                <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:0.1em;color:white">EAGLE EYE SYSTEMS</span>
+            </div>
+            <p style="font-size:11px;color:var(--text-muted);margin:0 0 16px">Ontario's premier AI-powered risk intelligence platform.</p>
+            <div style="display:flex;justify-content:center;gap:24px;margin-bottom:16px">
+                <span class="nav-link" onclick="showPage('home')" style="font-size:11px">Home</span>
+                <span class="nav-link" onclick="showPage('frameworks')" style="font-size:11px">Frameworks</span>
+                <span class="nav-link" onclick="showPage('solutions')" style="font-size:11px">Solutions</span>
+                <span class="nav-link" onclick="showPage('intake')" style="font-size:11px">Intake</span>
+            </div>
+            <p style="font-size:10px;color:#374151">&copy; 2026 Eagle Eye Systems. All rights reserved.</p>
+        </div>
+    </footer>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE: FRAMEWORKS -->
+<!-- ============================================================ -->
+<div class="page" id="page-frameworks">
+    <section style="padding:60px 24px 80px;background:linear-gradient(180deg,#0A0C10 0%,#111318 100%);border-bottom:1px solid var(--border)">
+        <div style="max-width:1100px;margin:0 auto">
+            <div style="margin-bottom:48px">
+                <div class="badge" style="margin-bottom:14px">AEGIS Intelligence Engine</div>
+                <h1 style="font-size:clamp(32px,5vw,56px);font-weight:800;color:white;margin:0 0 12px;line-height:1">THE NINE PROPRIETARY<br><span style="color:var(--bronze)">FRAMEWORKS</span></h1>
+                <p style="font-size:14px;color:var(--text-muted);max-width:560px;line-height:1.7">Each framework is a standalone analytical module. Together they form the complete AEGIS risk intelligence system. Click any card to view its full clinical write-up.</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+                <!-- LEMS -->
+                <div class="card" style="padding:24px;cursor:pointer" onclick="showFramework('LEMS')">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--bronze);letter-spacing:0.15em">LEMS</span>
+                        <i data-lucide="shield-alert" style="width:18px;height:18px;color:var(--bronze)"></i>
+                    </div>
+                    <h3 style="font-size:16px;font-weight:700;color:white;margin:0 0 8px">Liability Exposure Mapping</h3>
+                    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">Translates physical hazards directly into breach-of-statute risks under Ontario common law and the Occupiers' Liability Act.</p>
+                </div>
+                <!-- VERMS -->
+                <div class="card" style="padding:24px;cursor:pointer" onclick="showFramework('VERMS')">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--bronze);letter-spacing:0.15em">VERMS</span>
+                        <i data-lucide="droplet" style="width:18px;height:18px;color:var(--bronze)"></i>
+                    </div>
+                    <h3 style="font-size:16px;font-weight:700;color:white;margin:0 0 8px">Vector Exposure Risk</h3>
+                    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">Maps complex ecological, vector-borne, and hydrological runoff risks directly affecting property assets and waterfront compliance.</p>
+                </div>
+                <!-- PINS -->
+                <div class="card" style="padding:24px;cursor:pointer" onclick="showFramework('PINS')">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--bronze);letter-spacing:0.15em">PINS</span>
+                        <i data-lucide="clipboard-check" style="width:18px;height:18px;color:var(--bronze)"></i>
+                    </div>
+                    <h3 style="font-size:16px;font-weight:700;color:white;margin:0 0 8px">Property Inspection</h3>
+                    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">Trace-verified, geo-tagged physical inspections of walkways, structures, stairs, and common areas with photographic evidence.</p>
+                </div>
+                <!-- SEMS -->
+                <div class="card" style="padding:24px;cursor:pointer" onclick="showFramework('SEMS')">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--bronze);letter-spacing:0.15em">SEMS</span>
+                        <i data-lucide="lock" style="width:18px;height:18px;color:var(--bronze)"></i>
+                    </div>
+                    <h3 style="font-size:16px;font-weight:700;color:white;margin:0 0 8px">Security Exposure Mapping</h3>
+                    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">Identifies blind spots, access vulnerabilities, and lighting deficiencies across the entire property perimeter.</p>
+                </div>
+                <!-- DDIS -->
+                <div class="card" style="padding:24px;cursor:pointer" onclick="showFramework('DDIS')">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--bronze);letter-spacing:0.15em">DDIS</span>
+                        <i data-lucide="file-search" style="width:18px;height:18px;color:var(--bronze)"></i>
+                    </div>
+                    <h3 style="font-size:16px;font-weight:700;color:white;margin:0 0 8px">Due Diligence Intelligence</h3>
+                    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">Pre-acquisition liability mapping designed for real estate transaction velocity. Unvarnished latent risk before closing.</p>
+                </div>
+                <!-- CPJS -->
+                <div class="card" style="padding:24px;cursor:pointer" onclick="showFramework('CPJS')">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--bronze);letter-spacing:0.15em">CPJS</span>
+                        <i data-lucide="trending-up" style="width:18px;height:18px;color:var(--bronze)"></i>
+                    </div>
+                    <h3 style="font-size:16px;font-weight:700;color:white;margin:0 0 8px">Capital Project Justification</h3>
+                    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">Models the exact 1, 3, and 5-year cost-of-inaction on deferred maintenance for board capital approval.</p>
+                </div>
+                <!-- DOCS -->
+                <div class="card" style="padding:24px;cursor:pointer" onclick="showFramework('DOCS')">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--bronze);letter-spacing:0.15em">DOCS</span>
+                        <i data-lucide="folder-check" style="width:18px;height:18px;color:var(--bronze)"></i>
+                    </div>
+                    <h3 style="font-size:16px;font-weight:700;color:white;margin:0 0 8px">Compliance Engine</h3>
+                    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">Converts complex risk intelligence into daily operational SOPs, maintenance checklists, and audit-ready paper trails.</p>
+                </div>
+                <!-- LARS -->
+                <div class="card" style="padding:24px;cursor:pointer" onclick="showFramework('LARS')">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--bronze);letter-spacing:0.15em">LARS</span>
+                        <i data-lucide="cpu" style="width:18px;height:18px;color:var(--bronze)"></i>
+                    </div>
+                    <h3 style="font-size:16px;font-weight:700;color:white;margin:0 0 8px">Labor Automation Engine</h3>
+                    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">Our AI backend that compiles raw field findings into standardized, board-ready reports in minutes.</p>
+                </div>
+                <!-- AECS -->
+                <div class="card" style="padding:24px;cursor:pointer" onclick="showFramework('AECS')">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--bronze);letter-spacing:0.15em">AECS</span>
+                        <i data-lucide="calculator" style="width:18px;height:18px;color:var(--bronze)"></i>
+                    </div>
+                    <h3 style="font-size:16px;font-weight:700;color:white;margin:0 0 8px">Contractor Estimating System</h3>
+                    <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">Integrates localized Ontario contractor cost-indexes to estimate remediation budgets instantly.</p>
+                </div>
+            </div>
+
+            <!-- FRAMEWORK DETAIL PANEL -->
+            <div id="framework-detail" class="card" style="margin-top:24px;padding:32px;border-color:rgba(180,151,90,0.3)">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
+                    <div>
+                        <span id="detail-tag" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--bronze);letter-spacing:0.15em;display:block;margin-bottom:6px"></span>
+                        <h4 id="detail-title" style="font-size:22px;font-weight:800;color:white;margin:0"></h4>
+                    </div>
+                    <button onclick="closeFramework()" style="background:var(--dark-4);border:1px solid var(--border);border-radius:6px;color:var(--text-muted);padding:6px 12px;cursor:pointer;font-size:11px;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.05em">CLOSE</button>
+                </div>
+                <p id="detail-desc" style="font-size:14px;color:var(--text-mid);line-height:1.8;margin:0 0 24px"></p>
+                <div>
+                    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:white;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px">Core Deliverables</div>
+                    <ul id="detail-deliverables" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px"></ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer style="background:var(--dark);border-top:1px solid var(--border);padding:40px 24px;text-align:center">
+        <div style="max-width:1100px;margin:0 auto">
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px">
+                <div class="logo-mark" style="width:32px;height:32px"><i data-lucide="eye" style="width:14px;height:14px;color:var(--bronze)"></i></div>
+                <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:0.1em;color:white">EAGLE EYE SYSTEMS</span>
+            </div>
+            <div style="display:flex;justify-content:center;gap:24px;margin-bottom:16px">
+                <span class="nav-link" onclick="showPage('home')" style="font-size:11px">Home</span>
+                <span class="nav-link" onclick="showPage('frameworks')" style="font-size:11px">Frameworks</span>
+                <span class="nav-link" onclick="showPage('solutions')" style="font-size:11px">Solutions</span>
+                <span class="nav-link" onclick="showPage('intake')" style="font-size:11px">Intake</span>
+            </div>
+            <p style="font-size:10px;color:#374151">&copy; 2026 Eagle Eye Systems. All rights reserved.</p>
+        </div>
+    </footer>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE: SOLUTIONS -->
+<!-- ============================================================ -->
+<div class="page" id="page-solutions">
+    <section style="padding:60px 24px 80px;background:linear-gradient(180deg,#0A0C10 0%,#111318 100%);border-bottom:1px solid var(--border)">
+        <div style="max-width:1100px;margin:0 auto">
+            <div style="margin-bottom:56px">
+                <div class="badge" style="margin-bottom:14px">Strategic Deployment</div>
+                <h1 style="font-size:clamp(32px,5vw,56px);font-weight:800;color:white;margin:0 0 12px;line-height:1">STRATEGIC<br><span style="color:var(--bronze)">SOLUTIONS</span></h1>
+                <p style="font-size:14px;color:var(--text-muted);max-width:560px;line-height:1.7">Three deployment packages built around your specific operational context. Each solution draws on multiple AEGIS frameworks to deliver a complete, board-ready intelligence package.</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:60px">
+
+                <!-- Solution 1 -->
+                <div class="card" style="padding:32px;display:flex;flex-direction:column">
+                    <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--bronze);letter-spacing:0.15em;margin-bottom:8px">SOLUTION 01</div>
+                        <h3 style="font-size:22px;font-weight:800;color:white;margin:0 0 8px">Operational Liability Audit</h3>
+                        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">A complete physical and environmental risk audit of your operating property. Designed for General Managers and Boards who need a defensible, documented baseline of their current exposure.</p>
+                    </div>
+                    <div style="margin-bottom:20px;flex:1">
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:white;letter-spacing:0.1em;margin-bottom:10px">FRAMEWORKS DEPLOYED</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px">
+                            <span class="badge">LEMS</span><span class="badge">PINS</span><span class="badge">VERMS</span><span class="badge">SEMS</span><span class="badge">DOCS</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:20px">
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:white;letter-spacing:0.1em;margin-bottom:10px">DELIVERABLES</div>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>Board-ready risk intelligence report</li>
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>Geo-tagged evidence ledger</li>
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>Statutory compliance gap analysis</li>
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>Custom daily SOP checklist package</li>
+                        </ul>
+                    </div>
+                    <button class="btn-primary" onclick="showPage('intake')" style="width:100%">Request This Assessment</button>
+                </div>
+
+                <!-- Solution 2 -->
+                <div class="card" style="padding:32px;display:flex;flex-direction:column;border-color:rgba(180,151,90,0.3)">
+                    <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--bronze);letter-spacing:0.15em;margin-bottom:8px">SOLUTION 02 — MOST REQUESTED</div>
+                        <h3 style="font-size:22px;font-weight:800;color:white;margin:0 0 8px">Capital Justification Package</h3>
+                        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">Purpose-built to help GMs get capital approved. Combines physical inspection findings with financial modeling to present boards with a risk-adjusted business case for deferred maintenance investment.</p>
+                    </div>
+                    <div style="margin-bottom:20px;flex:1">
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:white;letter-spacing:0.1em;margin-bottom:10px">FRAMEWORKS DEPLOYED</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px">
+                            <span class="badge">PINS</span><span class="badge">CPJS</span><span class="badge">AECS</span><span class="badge">LARS</span><span class="badge">LEMS</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:20px">
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:white;letter-spacing:0.1em;margin-bottom:10px">DELIVERABLES</div>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>1, 3, 5-year cost-of-inaction model</li>
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>Board-ready capital case document</li>
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>Contractor cost-index estimates</li>
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>Risk-adjusted ROI analysis</li>
+                        </ul>
+                    </div>
+                    <button class="btn-primary" onclick="showPage('intake')" style="width:100%">Request This Assessment</button>
+                </div>
+
+                <!-- Solution 3 -->
+                <div class="card" style="padding:32px;display:flex;flex-direction:column">
+                    <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:var(--bronze);letter-spacing:0.15em;margin-bottom:8px">SOLUTION 03</div>
+                        <h3 style="font-size:22px;font-weight:800;color:white;margin:0 0 8px">Pre-Acquisition Due Diligence</h3>
+                        <p style="font-size:12px;color:var(--text-muted);line-height:1.6;margin:0">For buyers and lenders moving fast on high-value Ontario property. Surfaces latent physical and environmental liabilities before closing — before they become your problem.</p>
+                    </div>
+                    <div style="margin-bottom:20px;flex:1">
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:white;letter-spacing:0.1em;margin-bottom:10px">FRAMEWORKS DEPLOYED</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px">
+                            <span class="badge">DDIS</span><span class="badge">PINS</span><span class="badge">VERMS</span><span class="badge">AECS</span><span class="badge">LEMS</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:20px">
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;color:white;letter-spacing:0.1em;margin-bottom:10px">DELIVERABLES</div>
+                        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>Pre-acquisition liability summary</li>
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>Latent CapEx exposure report</li>
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>Environmental compliance audit</li>
+                            <li style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;align-items:flex-start"><span style="color:var(--bronze);margin-top:2px">→</span>Transactional risk rating</li>
+                        </ul>
+                    </div>
+                    <button class="btn-primary" onclick="showPage('intake')" style="width:100%">Request This Assessment</button>
+                </div>
+            </div>
+
+            <!-- HOW IT WORKS -->
+            <div style="background:var(--dark-2);border:1px solid var(--border);border-radius:12px;padding:40px">
+                <h2 style="font-size:clamp(22px,3vw,34px);font-weight:800;color:white;margin:0 0 32px;text-align:center">How It Works</h2>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px;text-align:center">
+                    <div>
+                        <div style="width:44px;height:44px;border-radius:50%;border:2px solid var(--bronze);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:var(--bronze)">01</div>
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:white;margin-bottom:6px">Submit Intake Brief</div>
+                        <div style="font-size:12px;color:var(--text-muted);line-height:1.6">Tell us about your property, location, and primary concern.</div>
+                    </div>
+                    <div>
+                        <div style="width:44px;height:44px;border-radius:50%;border:2px solid var(--bronze);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:var(--bronze)">02</div>
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:white;margin-bottom:6px">On-Site Assessment</div>
+                        <div style="font-size:12px;color:var(--text-muted);line-height:1.6">Our team deploys the relevant AEGIS frameworks at your property.</div>
+                    </div>
+                    <div>
+                        <div style="width:44px;height:44px;border-radius:50%;border:2px solid var(--bronze);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:var(--bronze)">03</div>
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:white;margin-bottom:6px">Report Delivered</div>
+                        <div style="font-size:12px;color:var(--text-muted);line-height:1.6">Board-ready intelligence package in your hands within 48 hours.</div>
+                    </div>
+                    <div>
+                        <div style="width:44px;height:44px;border-radius:50%;border:2px solid var(--bronze);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:var(--bronze)">04</div>
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:white;margin-bottom:6px">Actionable Compliance</div>
+                        <div style="font-size:12px;color:var(--text-muted);line-height:1.6">SOPs and checklists deployed so your team acts on findings immediately.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer style="background:var(--dark);border-top:1px solid var(--border);padding:40px 24px;text-align:center">
+        <div style="max-width:1100px;margin:0 auto">
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px">
+                <div class="logo-mark" style="width:32px;height:32px"><i data-lucide="eye" style="width:14px;height:14px;color:var(--bronze)"></i></div>
+                <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:0.1em;color:white">EAGLE EYE SYSTEMS</span>
+            </div>
+            <div style="display:flex;justify-content:center;gap:24px;margin-bottom:16px">
+                <span class="nav-link" onclick="showPage('home')" style="font-size:11px">Home</span>
+                <span class="nav-link" onclick="showPage('frameworks')" style="font-size:11px">Frameworks</span>
+                <span class="nav-link" onclick="showPage('solutions')" style="font-size:11px">Solutions</span>
+                <span class="nav-link" onclick="showPage('intake')" style="font-size:11px">Intake</span>
+            </div>
+            <p style="font-size:10px;color:#374151">&copy; 2026 Eagle Eye Systems. All rights reserved.</p>
+        </div>
+    </footer>
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE: INTAKE -->
+<!-- ============================================================ -->
+<div class="page" id="page-intake">
+    <section style="padding:60px 24px 80px;background:linear-gradient(180deg,#0A0C10 0%,#111318 100%);min-height:calc(100vh - 64px)">
+        <div style="max-width:680px;margin:0 auto">
+            <div style="margin-bottom:40px">
+                <div class="badge" style="margin-bottom:14px">Begin the Process</div>
+                <h1 style="font-size:clamp(32px,5vw,52px);font-weight:800;color:white;margin:0 0 12px;line-height:1">INITIATE<br><span style="color:var(--bronze)">INTAKE BRIEFING</span></h1>
+                <p style="font-size:14px;color:var(--text-muted);line-height:1.7">Submit your property parameters below. We review every submission personally and respond within 24 hours with a tailored assessment proposal.</p>
+            </div>
+
+            <!-- SUCCESS STATE -->
+            <div id="form-success" class="card" style="padding:48px;text-align:center;border-color:rgba(180,151,90,0.3)">
+                <i data-lucide="check-circle" style="width:48px;height:48px;color:var(--bronze);margin:0 auto 20px;display:block"></i>
+                <h3 style="font-size:28px;font-weight:800;color:white;margin:0 0 12px">Intake Brief Received</h3>
+                <p style="font-size:14px;color:var(--text-muted);line-height:1.7;margin:0 0 24px">Your briefing has been submitted successfully. We will review your property parameters and respond within 24 hours with a tailored assessment proposal.</p>
+                <button class="btn-secondary" onclick="showPage('home')">Return to Home</button>
+            </div>
+
+            <!-- FORM -->
+            <div id="form-fields">
+                <form id="intake-form" action="https://formspree.io/f/njyb.unit@icloud.com" method="POST" class="card" style="padding:36px;display:flex;flex-direction:column;gap:24px">
+                    <input type="hidden" name="_subject" value="New Eagle Eye Systems Intake Brief">
+                    <input type="hidden" name="_next" value="">
+
+                    <div>
+                        <label class="form-label">Your Name *</label>
+                        <input type="text" name="name" required class="form-input" placeholder="Full name">
+                    </div>
+                    <div>
+                        <label class="form-label">Your Email *</label>
+                        <input type="email" name="email" required class="form-input" placeholder="your@email.com">
+                    </div>
+                    <div>
+                        <label class="form-label">Your Phone</label>
+                        <input type="tel" name="phone" class="form-input" placeholder="(416) 000-0000">
+                    </div>
+                    <hr class="divider">
+                    <div>
+                        <label class="form-label">Property Name *</label>
+                        <input type="text" name="property_name" required class="form-input" placeholder="e.g., Sherwood Lakes Resort">
+                    </div>
+                    <div>
+                        <label class="form-label">Property Location (Ontario) *</label>
+                        <input type="text" name="property_location" required class="form-input" placeholder="e.g., Muskoka, ON">
+                    </div>
+                    <div>
+                        <label class="form-label">Property Type</label>
+                        <select name="property_type" class="form-input">
+                            <option value="">Select property type...</option>
+                            <option>Golf & Country Club</option>
+                            <option>Marina / Waterfront</option>
+                            <option>Cottage Resort</option>
+                            <option>Commercial Hotel</option>
+                            <option>Condo Corporation</option>
+                            <option>Other Commercial Property</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Primary Objective *</label>
+                        <select name="primary_objective" required class="form-input">
+                            <option value="">Select your primary objective...</option>
+                            <option>Operational Liability Audit</option>
+                            <option>Capital Project Justification</option>
+                            <option>Pre-Acquisition Due Diligence</option>
+                            <option>Board Risk Governance Audit</option>
+                            <option>Deferred Maintenance Budgeting</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Known Concerns / Additional Context</label>
+                        <textarea name="concerns" class="form-input" style="height:100px;resize:vertical" placeholder="Describe any specific areas of concern (e.g., shoreline erosion, aging walkways, deferred maintenance backlog)..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width:100%;padding:14px">Submit Intake Brief →</button>
+                    <p style="font-size:11px;color:var(--text-muted);text-align:center;margin:0">We respond to every submission within 24 hours.</p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer style="background:var(--dark);border-top:1px solid var(--border);padding:40px 24px;text-align:center">
+        <div style="max-width:1100px;margin:0 auto">
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px">
+                <div class="logo-mark" style="width:32px;height:32px"><i data-lucide="eye" style="width:14px;height:14px;color:var(--bronze)"></i></div>
+                <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:0.1em;color:white">EAGLE EYE SYSTEMS</span>
+            </div>
+            <p style="font-size:10px;color:#374151">&copy; 2026 Eagle Eye Systems. All rights reserved.</p>
+        </div>
+    </footer>
+</div>
+
+<script>
+lucide.createIcons();
+
+// PAGE NAVIGATION
+function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    const navEl = document.getElementById('nav-' + page);
+    if (navEl) navEl.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    lucide.createIcons();
+}
+
+// FRAMEWORK DATA
+const frameworks = {
+    LEMS: {
+        title: "Liability Exposure Mapping",
+        desc: "The core analytical layer of the AEGIS engine. LEMS translates physical property hazards directly into breach-of-statute risks under Ontario common law and the Occupiers' Liability Act. Every finding is mapped to its specific legal mechanism of liability, giving boards and operators a precise picture of their litigation exposure.",
+        deliverables: ["Statutory Breach Matrix (Occupiers' Liability Act, Building Code, etc.)", "Case Law Precedent Alignment Mapping", "Boardroom Litigation Exposure Risk Analysis", "Priority Risk Remediation Ranking"]
+    },
+    VERMS: {
+        title: "Vector Exposure Risk",
+        desc: "Maps complex ecological, vector-borne, and hydrological runoff risks directly affecting property assets. This includes shoreline erosion, drainage failures, standing water hazards, and vector-borne disease exposure zones. Compliance is audited against the Ontario Water Resources Act and applicable environmental statutes.",
+        deliverables: ["Hydrological Drainage & Runoff Mapping", "Fairway & Shoreline Erosion Vectors", "Ontario Water Resources Act Compliance Scoring", "Vector Exposure Zone Identification"]
+    },
+    PINS: {
+        title: "Property Inspection",
+        desc: "Trace-verified, geo-tagged physical inspections of walkways, structures, stairs, docks, and all common areas. Every finding is logged with precise GPS coordinates, timestamped photographic evidence, and a structural severity rating — creating an irrefutable audit trail.",
+        deliverables: ["Geo-Tagged Physical Asset Log with GPS Coordinates", "High-Resolution Visual Evidence Ledger", "Structural Severity Indexing (Critical / High / Medium / Low)", "Recommended Remediation Timeline"]
+    },
+    SEMS: {
+        title: "Security Exposure Mapping",
+        desc: "Identifies physical blind spots, access control vulnerabilities, lighting deficiencies, and structural perimeter weaknesses across the entire property. SEMS produces a security liability report that satisfies insurance carrier requirements and protects against unauthorized entry claims.",
+        deliverables: ["Access Control & Perimeter Vulnerability Audit", "Lux-Level Lighting Coverage Mapping", "Premises Security Liability Report", "Insurance-Compliant Documentation Package"]
+    },
+    DDIS: {
+        title: "Due Diligence Intelligence",
+        desc: "Pre-acquisition liability mapping designed specifically for real estate transaction velocity. DDIS provides buyers, lenders, and legal counsel with an unvarnished view of latent physical and environmental liabilities before closing — surfacing the risks that standard property inspections routinely miss.",
+        deliverables: ["Pre-Acquisition Liability Summary Report", "Latent Capital Expenditure (CapEx) Exposure Quantification", "Transactional Risk Rating", "Buyer's Remediation Cost Estimate"]
+    },
+    CPJS: {
+        title: "Capital Project Justification",
+        desc: "Models the exact 1, 3, and 5-year cost-of-inaction on deferred maintenance. CPJS converts raw inspection findings into structured, board-ready business cases that make the financial and legal argument for capital allocation — giving General Managers the ammunition they need to get projects approved.",
+        deliverables: ["Deferred Maintenance Cost-of-Inaction Curve (1/3/5 Year)", "Board-Ready Capital Case Documentation", "Risk-Adjusted Return on Investment (ROI) Model", "Priority Capital Allocation Recommendations"]
+    },
+    DOCS: {
+        title: "Compliance Engine",
+        desc: "Converts complex risk intelligence into daily operational SOPs, maintenance checklists, and trace-verified inspection logbooks. DOCS provides the legally defensible 'proof of reasonable care' required to defend against slip-and-fall litigation and regulatory audits. It turns findings into daily operational habits.",
+        deliverables: ["Custom Daily Maintenance SOP Checklists", "Trace-Verified Digital Inspection Logbook Template", "Audit-Ready Due Diligence Paper Trail", "Staff Training Compliance Brief"]
+    },
+    LARS: {
+        title: "Labor Automation Engine",
+        desc: "Our proprietary AI backend that compiles raw field findings, photographic evidence, and on-site data into standardized, board-ready reports in minutes rather than days. LARS guarantees analytical consistency, rapid delivery, and eliminates the variable quality of manual report writing.",
+        deliverables: ["Automated Report Compilation Interface", "Standardized Analytical Risk Formatting", "Evidence-to-Report Integrity Verification", "48-Hour Delivery Guarantee"]
+    },
+    AECS: {
+        title: "Contractor Estimating System",
+        desc: "Integrates localized Ontario contractor cost-indexes to estimate remediation budgets instantly. AECS gives General Managers and Boards accurate, market-aligned pricing parameters for every identified repair project — eliminating the guesswork from capital planning.",
+        deliverables: ["Localized Ontario Contractor Cost-Index Matching", "Line-Item Remediation Budget Estimation", "Market-Aligned Project Cost Projections", "Vendor Category Recommendations"]
+    }
+};
+
+function showFramework(id) {
+    const data = frameworks[id];
+    if (!data) return;
+    document.getElementById('detail-tag').innerText = id;
+    document.getElementById('detail-title').innerText = data.title;
+    document.getElementById('detail-desc').innerText = data.desc;
+    const ul = document.getElementById('detail-deliverables');
+    ul.innerHTML = '';
+    data.deliverables.forEach(item => {
+        const li = document.createElement('li');
+        li.style.cssText = 'display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#94A3B8;line-height:1.5';
+        li.innerHTML = '<span style="color:#B4975A;margin-top:2px;flex-shrink:0">→</span>' + item;
+        ul.appendChild(li);
+    });
+    const box = document.getElementById('framework-detail');
+    box.classList.add('visible');
+    setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+function closeFramework() {
+    document.getElementById('framework-detail').classList.remove('visible');
+}
+
+// FORM SUBMISSION
+document.getElementById('intake-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    btn.innerText = 'Submitting...';
+    btn.disabled = true;
+
+    try {
+        const formData = new FormData(this);
+        const res = await fetch('https://formspree.io/f/xjkvpwkd', {
+            method: 'POST',
+            body: formData,
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (res.ok) {
+            document.getElementById('form-fields').classList.add('hidden');
+            document.getElementById('form-success').classList.add('visible');
+            lucide.createIcons();
+        } else {
+            btn.innerText = 'Submit Intake Brief →';
+            btn.disabled = false;
+            alert('Something went wrong. Please try again or email njyb.unit@icloud.com directly.');
+        }
+    } catch(err) {
+        btn.innerText = 'Submit Intake Brief →';
+        btn.disabled = false;
+        alert('Something went wrong. Please try again or email njyb.unit@icloud.com directly.');
+    }
+});
+</script>
+</body>
+</html>
